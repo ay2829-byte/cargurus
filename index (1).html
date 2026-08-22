@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CarGurus Response Radar Prototype</title>
+<style>
+  :root {
+    --navy: #0B2B4A;
+    --navy-deep: #071D33;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #16202B;
+    --muted: #6B7686;
+    --line: #E4E8EE;
+    --green: #1F9D55;
+    --green-bg: #E7F6EC;
+    --amber: #C77A12;
+    --amber-bg: #FCF1DD;
+    --red: #C6432A;
+    --red-bg: #FCEAE5;
+    --radius: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    padding: 24px 12px 40px;
+    color: var(--text);
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .demo-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 380px;
+  }
+
+  .demo-btn {
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--navy);
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .demo-btn:hover { background: #EEF2F6; }
+
+  .demo-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    max-width: 320px;
+  }
+
+  .phone {
+    width: 375px;
+    height: 780px;
+    background: var(--bg);
+    border-radius: 40px;
+    border: 10px solid var(--navy-deep);
+    box-shadow: 0 20px 50px rgba(11,43,74,0.25);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 22px;
+    background: var(--navy-deep);
+    border-radius: 0 0 14px 14px;
+    z-index: 30;
+  }
+
+  .statusbar {
+    height: 34px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 22px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--card);
+  }
+
+  .toast-banner {
+    position: absolute;
+    top: 34px;
+    left: 0;
+    right: 0;
+    z-index: 25;
+    background: var(--navy);
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    transform: translateY(-140%);
+    transition: transform 0.35s ease;
+    cursor: pointer;
+  }
+
+  .toast-banner.show { transform: translateY(0); }
+
+  .toast-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+  }
+
+  .toast-copy { font-size: 12.5px; line-height: 1.4; }
+  .toast-copy b { display: block; font-size: 13px; margin-bottom: 2px; }
+
+  .app {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen { display: none; flex-direction: column; flex: 1; }
+  .screen.active { display: flex; }
+
+  .topbar {
+    background: var(--navy);
+    color: white;
+    padding: 14px 18px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topbar-title { font-size: 17px; font-weight: 700; }
+  .topbar-sub { font-size: 12px; color: #B7C6D6; margin-top: 2px; }
+
+  .content { padding: 14px; flex: 1; }
+
+  /* Listing screen */
+  .photo {
+    height: 190px;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg,#DCE4EC,#EFF3F7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--green);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: 999px;
+  }
+
+  .car-title { font-size: 18px; font-weight: 700; }
+  .car-meta { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .car-price { font-size: 22px; font-weight: 800; margin-top: 8px; color: var(--navy); }
+
+  .dealer-row {
+    margin-top: 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .dealer-name { font-size: 13.5px; font-weight: 700; }
+  .dealer-loc { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+
+  .response-meter {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .rm-fast { background: var(--green-bg); color: var(--green); }
+  .rm-fast .rm-dot { background: var(--green); }
+  .rm-slow { background: var(--amber-bg); color: var(--amber); }
+  .rm-slow .rm-dot { background: var(--amber); }
+
+  .rm-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  .cta {
+    margin-top: 16px;
+    background: var(--navy);
+    color: white;
+    text-align: center;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14.5px;
+    cursor: pointer;
+  }
+
+  .cta:active { opacity: 0.85; }
+
+  .cta-secondary {
+    margin-top: 10px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--navy);
+    text-align: center;
+    padding: 13px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* Bottom sheet */
+  .sheet-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(11,43,74,0.35);
+    z-index: 40;
+    display: none;
+    align-items: flex-end;
+  }
+
+  .sheet-overlay.show { display: flex; }
+
+  .sheet {
+    background: var(--card);
+    width: 100%;
+    border-radius: 22px 22px 0 0;
+    padding: 22px 20px 26px;
+  }
+
+  .sheet-check {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--green-bg);
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+
+  .sheet-title { font-size: 16.5px; font-weight: 800; }
+  .sheet-body { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+
+  .sheet-meter-row {
+    margin-top: 14px;
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 11px 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Inquiries screen */
+  .inq-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 5px solid transparent;
+    border-radius: var(--radius);
+    padding: 13px 14px;
+    margin-bottom: 12px;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .inq-card.state-replied { border-left-color: var(--green); }
+  .inq-card.state-waiting { border-left-color: var(--amber); }
+  .inq-card.state-quiet { border-left-color: var(--red); background: var(--red-bg); }
+
+  .inq-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .inq-car { font-size: 14px; font-weight: 700; }
+  .inq-dealer { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .status-chip {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: 999px;
+  }
+
+  .status-replied { background: var(--green-bg); color: var(--green); }
+  .status-waiting { background: var(--amber-bg); color: var(--amber); }
+  .status-quiet { background: var(--red-bg); color: var(--red); }
+
+  .inq-detail { font-size: 12px; color: var(--muted); margin-top: 9px; }
+
+  .inq-action {
+    margin-top: 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--navy);
+    display: none;
+    cursor: pointer;
+  }
+
+  .inq-action.show { display: block; }
+
+  /* Backup matches */
+  .match-intro {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .match-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 13px;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+
+  .match-thumb {
+    width: 58px;
+    height: 46px;
+    border-radius: 8px;
+    background: linear-gradient(135deg,#DCE4EC,#EFF3F7);
+    flex-shrink: 0;
+  }
+
+  .match-info { flex: 1; }
+  .match-name { font-size: 13px; font-weight: 700; }
+  .match-price { font-size: 12.5px; color: var(--navy); font-weight: 700; margin-top: 1px; }
+
+  .match-btn {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: white;
+    background: var(--navy);
+    padding: 7px 11px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .match-btn.sent { background: var(--green); }
+
+  /* Tab bar */
+  .tabbar {
+    display: flex;
+    border-top: 1px solid var(--line);
+    background: var(--card);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 9px 0 12px;
+    text-align: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .tab.active { color: var(--navy); }
+  .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
+  .tab-badge {
+    position: absolute;
+    top: 3px;
+    right: calc(50% - 22px);
+    background: var(--red);
+    color: white;
+    font-size: 9px;
+    font-weight: 800;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 4px 0 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>CarGurus</span>
+      <span>100%</span>
+    </div>
+
+    <div class="toast-banner" id="toastBanner" onclick="openBackupMatches()">
+      <div class="toast-dot"></div>
+      <div class="toast-copy">
+        <b>Still no word from Auto World Boston</b>
+        No response in 6 hours. See 3 RAV4s replying faster, tap to view.
+      </div>
+    </div>
+
+    <div class="app">
+
+      <!-- LISTING SCREEN -->
+      <div class="screen active" id="screen-listing">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">2020 Toyota RAV4 XLE</div>
+            <div class="topbar-sub">Auto World Boston · Dorchester, MA</div>
+          </div>
+        </div>
+        <div class="content">
+          <div class="photo">
+            <span class="badge">Fair Deal</span>
+            Listing photo
+          </div>
+          <div class="car-title">2020 Toyota RAV4 XLE AWD</div>
+          <div class="car-meta">41,200 mi · 1 owner · Clean title</div>
+          <div class="car-price">$22,750</div>
+
+          <div class="dealer-row">
+            <div>
+              <div class="dealer-name">Auto World Boston</div>
+              <div class="dealer-loc">4.1 mi away</div>
+            </div>
+            <div class="response-meter rm-slow"><span class="rm-dot"></span>Response time varies</div>
+          </div>
+
+          <div class="cta" onclick="openSheet()">Message Dealer</div>
+          <div class="cta-secondary" onclick="showTab('inquiries')">View My Inquiries</div>
+        </div>
+      </div>
+
+      <!-- INQUIRIES SCREEN -->
+      <div class="screen" id="screen-inquiries">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">My Inquiries</div>
+            <div class="topbar-sub">2 active</div>
+          </div>
+        </div>
+        <div class="content">
+          <div class="section-label">Today</div>
+
+          <div class="inq-card state-replied">
+            <div class="inq-top">
+              <div>
+                <div class="inq-car">2021 Honda CR-V EX AWD</div>
+                <div class="inq-dealer">Metro West Honda</div>
+              </div>
+              <div class="status-chip status-replied">Replied</div>
+            </div>
+            <div class="inq-detail">Responded in 18 minutes, ahead of their usual pace.</div>
+          </div>
+
+          <div class="inq-card state-waiting" id="rav4Card">
+            <div class="inq-top">
+              <div>
+                <div class="inq-car">2020 Toyota RAV4 XLE</div>
+                <div class="inq-dealer">Auto World Boston</div>
+              </div>
+              <div class="status-chip status-waiting" id="rav4Status">Waiting</div>
+            </div>
+            <div class="inq-detail" id="rav4Detail">Message sent 12 minutes ago. Most dealers reply within a few hours.</div>
+            <div class="inq-action" id="rav4Action" onclick="openBackupMatches()">See 3 similar cars replying faster &rarr;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BACKUP MATCHES SCREEN -->
+      <div class="screen" id="screen-matches">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">While You Wait</div>
+            <div class="topbar-sub">Similar to your RAV4 inquiry</div>
+          </div>
+        </div>
+        <div class="content">
+          <div class="match-intro">Auto World Boston hasn't responded yet. These dealers have similar RAV4s and typically reply fast.</div>
+
+          <div class="match-card">
+            <div class="match-thumb"></div>
+            <div class="match-info">
+              <div class="match-name">2020 RAV4 LE, Newton Toyota</div>
+              <div class="match-price">$21,990</div>
+              <div class="response-meter rm-fast" style="margin-top:5px;"><span class="rm-dot"></span>Usually replies in ~40 min</div>
+            </div>
+            <div class="match-btn" onclick="markSent(this)">Message</div>
+          </div>
+
+          <div class="match-card">
+            <div class="match-thumb"></div>
+            <div class="match-info">
+              <div class="match-name">2021 RAV4 XLE, Herb Chambers Toyota</div>
+              <div class="match-price">$23,410</div>
+              <div class="response-meter rm-fast" style="margin-top:5px;"><span class="rm-dot"></span>Usually replies in ~1 hr</div>
+            </div>
+            <div class="match-btn" onclick="markSent(this)">Message</div>
+          </div>
+
+          <div class="match-card">
+            <div class="match-thumb"></div>
+            <div class="match-info">
+              <div class="match-name">2020 RAV4 XLE, Quirk Toyota</div>
+              <div class="match-price">$22,150</div>
+              <div class="response-meter rm-fast" style="margin-top:5px;"><span class="rm-dot"></span>Usually replies in ~35 min</div>
+            </div>
+            <div class="match-btn" onclick="markSent(this)">Message</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active" id="tab-listing" onclick="showTab('listing')">
+          <span class="tab-icon">&#128269;</span>Search
+        </div>
+        <div class="tab" id="tab-inquiries" onclick="showTab('inquiries')">
+          <span class="tab-icon">&#128172;</span>Inquiries
+          <span class="tab-badge" id="inqBadge" style="display:none;">1</span>
+        </div>
+        <div class="tab" id="tab-saved" onclick="showTab('saved')">
+          <span class="tab-icon">&#9825;</span>Saved
+        </div>
+      </div>
+    </div>
+
+    <!-- SHEET -->
+    <div class="sheet-overlay" id="sheetOverlay">
+      <div class="sheet">
+        <div class="sheet-check">&#10003;</div>
+        <div class="sheet-title">Message sent to Auto World Boston</div>
+        <div class="sheet-body">You'll get a notification the moment they reply. If they go quiet, we'll surface similar cars so you're never stuck waiting on one dealer.</div>
+        <div class="sheet-meter-row">
+          <div style="font-size:12.5px;font-weight:700;">Their typical response</div>
+          <div class="response-meter rm-slow"><span class="rm-dot"></span>Varies, no set pace</div>
+        </div>
+        <div class="cta" onclick="closeSheetAndGo()" style="margin-top:16px;">View My Inquiries</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-controls">
+    <button class="demo-btn" onclick="fastForward()">Fast forward 6 hours</button>
+    <button class="demo-btn" onclick="reset()">Reset prototype</button>
+  </div>
+  <div class="demo-label">These two buttons are prototype controls only, not part of the real app. They simulate time passing so you can see the ghosted state and the backup match trigger.</div>
+
+</div>
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (name === 'listing') {
+      document.getElementById('screen-listing').classList.add('active');
+      document.getElementById('tab-listing').classList.add('active');
+    } else if (name === 'inquiries') {
+      document.getElementById('screen-inquiries').classList.add('active');
+      document.getElementById('tab-inquiries').classList.add('active');
+      document.getElementById('inqBadge').style.display = 'none';
+    } else if (name === 'saved') {
+      document.getElementById('screen-listing').classList.add('active');
+      document.getElementById('tab-saved').classList.add('active');
+    } else if (name === 'matches') {
+      document.getElementById('screen-matches').classList.add('active');
+      document.getElementById('tab-inquiries').classList.add('active');
+    }
+  }
+
+  function openSheet() {
+    document.getElementById('sheetOverlay').classList.add('show');
+  }
+
+  function closeSheetAndGo() {
+    document.getElementById('sheetOverlay').classList.remove('show');
+    showTab('inquiries');
+  }
+
+  function openBackupMatches() {
+    document.getElementById('toastBanner').classList.remove('show');
+    showTab('matches');
+  }
+
+  function markSent(el) {
+    el.textContent = 'Sent';
+    el.classList.add('sent');
+  }
+
+  function fastForward() {
+    document.getElementById('rav4Status').textContent = 'No reply yet';
+    document.getElementById('rav4Status').className = 'status-chip status-quiet';
+    document.getElementById('rav4Card').classList.remove('state-waiting');
+    document.getElementById('rav4Card').classList.add('state-quiet');
+    document.getElementById('rav4Detail').textContent = 'No response in 6 hours, longer than usual for this area.';
+    document.getElementById('rav4Action').classList.add('show');
+    document.getElementById('inqBadge').style.display = 'flex';
+    document.getElementById('toastBanner').classList.add('show');
+    showTab('inquiries');
+  }
+
+  function reset() {
+    document.getElementById('rav4Status').textContent = 'Waiting';
+    document.getElementById('rav4Status').className = 'status-chip status-waiting';
+    document.getElementById('rav4Card').classList.remove('state-quiet');
+    document.getElementById('rav4Card').classList.add('state-waiting');
+    document.getElementById('rav4Detail').textContent = 'Message sent 12 minutes ago. Most dealers reply within a few hours.';
+    document.getElementById('rav4Action').classList.remove('show');
+    document.getElementById('inqBadge').style.display = 'none';
+    document.getElementById('toastBanner').classList.remove('show');
+    document.querySelectorAll('.match-btn').forEach(b => { b.textContent = 'Message'; b.classList.remove('sent'); });
+    showTab('listing');
+  }
+</script>
+
+</body>
+</html>
