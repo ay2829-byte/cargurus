@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CarGurus Price Lock, Desktop</title>
+<style>
+  :root {
+    --navy: #0B2B4A;
+    --navy-deep: #071D33;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #16202B;
+    --muted: #6B7686;
+    --line: #E2E7EE;
+    --green: #1F9D55;
+    --green-bg: #E7F6EC;
+    --gold: #B8860B;
+    --gold-bg: #FBF3DE;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: transparent; padding: 20px 10px 40px; display: flex; flex-direction: column; align-items: center; gap: 14px; color: var(--text); }
+
+  .browser {
+    width: 1180px;
+    max-width: 100%;
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(11,43,74,0.18);
+    border: 1px solid var(--line);
+  }
+  .chrome {
+    background: #E9EDF2;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.r { background: #EC6A5E; }
+  .dot.y { background: #F4BF4F; }
+  .dot.g { background: #61C454; }
+  .urlbar {
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 8px;
+  }
+
+  .site { max-height: 820px; overflow-y: auto; }
+
+  header.nav {
+    background: var(--navy);
+    color: white;
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .logo { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
+  .navlinks { display: flex; gap: 22px; flex: 1; }
+  .navlinks span { font-size: 13.5px; font-weight: 600; color: #C9D6E4; cursor: pointer; }
+  .navlinks span.active { color: white; border-bottom: 2px solid white; padding-bottom: 16px; margin-bottom: -16px; }
+  .navsearch {
+    background: #123A5E; border-radius: 8px; padding: 7px 14px; font-size: 12.5px; color: #A9BCD0; width: 220px;
+  }
+  .navaccount { font-size: 13px; font-weight: 700; background: white; color: var(--navy); padding: 8px 14px; border-radius: 8px; cursor: pointer; }
+
+  .breadcrumb { padding: 14px 32px 0; font-size: 12px; color: var(--muted); }
+  .breadcrumb b { color: var(--text); }
+
+  .layout { display: flex; gap: 26px; padding: 18px 32px 40px; align-items: flex-start; }
+  .main { flex: 1; min-width: 0; }
+  .side { width: 340px; flex-shrink: 0; }
+
+  .gallery {
+    height: 360px; border-radius: 14px; background: linear-gradient(135deg,#DCE4EC,#EFF3F7);
+    display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 13px;
+    position: relative; overflow: hidden;
+  }
+  .thumbs { display: flex; gap: 8px; margin-top: 8px; }
+  .thumb { width: 78px; height: 52px; border-radius: 8px; background: linear-gradient(135deg,#E4EAF0,#F2F5F8); }
+
+  .lock-ribbon {
+    position: absolute; top: 14px; right: 14px; background: var(--gold); color: white;
+    font-size: 12px; font-weight: 700; padding: 7px 13px; border-radius: 999px;
+    display: none; align-items: center; gap: 6px;
+  }
+  .lock-ribbon.show { display: flex; }
+
+  .title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 22px; }
+  .car-title { font-size: 25px; font-weight: 800; }
+  .car-meta { font-size: 13.5px; color: var(--muted); margin-top: 5px; }
+  .deal-badge { background: var(--green-bg); color: var(--green); font-size: 12.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px; }
+  .price { font-size: 30px; font-weight: 800; color: var(--navy); text-align: right; }
+
+  .spec-strip {
+    display: flex; gap: 26px; margin-top: 18px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .spec { font-size: 12.5px; color: var(--muted); }
+  .spec b { display: block; font-size: 14px; color: var(--text); font-weight: 700; margin-bottom: 2px; }
+
+  .section-title { font-size: 15.5px; font-weight: 800; margin: 24px 0 10px; }
+  .desc { font-size: 13.5px; line-height: 1.7; color: #44505E; }
+
+  .similar-row { display: flex; gap: 14px; margin-top: 10px; }
+  .similar-card { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .similar-photo { height: 90px; background: linear-gradient(135deg,#E4EAF0,#F2F5F8); }
+  .similar-info { padding: 10px 12px; }
+  .similar-name { font-size: 12.5px; font-weight: 700; }
+  .similar-price { font-size: 12.5px; color: var(--navy); font-weight: 700; margin-top: 2px; }
+
+  /* Sidebar dealer card */
+  .dealer-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px;
+    position: sticky; top: 14px;
+  }
+  .dealer-name { font-size: 15px; font-weight: 800; }
+  .dealer-loc { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .dealer-rating { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .divider { border-top: 1px solid var(--line); margin: 16px 0; }
+
+  .lock-panel-title { font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+  .lock-panel-copy { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 6px; }
+
+  .lock-status-line {
+    margin-top: 12px; display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700;
+    background: var(--bg); border-radius: 8px; padding: 9px 12px;
+  }
+  .lock-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .lock-status-line.pending .lock-dot { background: var(--gold); }
+  .lock-status-line.confirmed .lock-dot { background: var(--green); }
+
+  .lock-btn {
+    width: 100%; margin-top: 12px; background: var(--navy); color: white; text-align: center;
+    padding: 13px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; border: none;
+  }
+  .lock-btn.done { background: var(--green); cursor: default; }
+
+  .itemized {
+    margin-top: 14px; background: var(--bg); border-radius: 10px; padding: 12px 14px; display: none;
+  }
+  .itemized.show { display: block; }
+  .item-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; }
+  .item-row.total { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; font-weight: 800; font-size: 13.5px; }
+
+  .contact-btn {
+    width: 100%; margin-top: 10px; background: white; border: 1px solid var(--line); color: var(--navy);
+    text-align: center; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer;
+  }
+
+  /* My Price Locks page */
+  .locks-page { padding: 28px 32px 40px; display: none; }
+  .locks-page.active { display: block; }
+  .locks-header { font-size: 21px; font-weight: 800; margin-bottom: 4px; }
+  .locks-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+  .lock-list-card {
+    background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--green);
+    border-radius: 12px; padding: 16px 20px; display: flex; gap: 18px; align-items: center; margin-bottom: 14px;
+  }
+  .lock-list-photo { width: 100px; height: 68px; border-radius: 8px; background: linear-gradient(135deg,#DCE4EC,#EFF3F7); flex-shrink: 0; }
+  .lock-list-info { flex: 1; }
+  .lock-list-name { font-size: 14.5px; font-weight: 800; }
+  .lock-list-dealer { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .lock-list-detail { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .lock-list-price { text-align: right; }
+  .lock-list-total { font-size: 17px; font-weight: 800; color: var(--navy); }
+  .lock-list-tag { font-size: 11px; font-weight: 700; color: var(--green); background: var(--green-bg); padding: 3px 9px; border-radius: 999px; margin-top: 4px; display: inline-block; }
+
+  .empty-state { text-align: center; color: var(--muted); font-size: 13px; padding: 40px 0; }
+
+  .site.hide-vdp .layout { display: none; }
+
+  .demo-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .demo-btn { font-size: 12px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--navy); cursor: pointer; font-weight: 600; }
+  .demo-btn:hover { background: #EEF2F6; }
+  .demo-label { font-size: 11px; color: var(--muted); text-align: center; max-width: 480px; }
+</style>
+</head>
+<body>
+
+<div class="browser">
+  <div class="chrome">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <div class="urlbar" id="urlbar">cargurus.com/Cars/l/Used-2019-Subaru-Outback-Limited</div>
+  </div>
+
+  <div class="site" id="site">
+    <header class="nav">
+      <div class="logo">CarGurus</div>
+      <div class="navlinks">
+        <span class="active" onclick="showPage('vdp')">Buy</span>
+        <span>Sell / Trade</span>
+        <span>Financing</span>
+        <span onclick="showPage('locks')">Price Locks</span>
+      </div>
+      <div class="navsearch">Search make, model, zip</div>
+      <div class="navaccount">My Account</div>
+    </header>
+
+    <!-- VDP PAGE -->
+    <div id="page-vdp">
+      <div class="breadcrumb">Used Cars &nbsp;&gt;&nbsp; Subaru &nbsp;&gt;&nbsp; Outback &nbsp;&gt;&nbsp; <b>2019 Outback Limited, Salem MA</b></div>
+
+      <div class="layout">
+        <div class="main">
+          <div class="gallery">
+            <div class="lock-ribbon" id="lockRibbon">&#128274; Price Confirmed</div>
+            Main listing photo
+          </div>
+          <div class="thumbs">
+            <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+          </div>
+
+          <div class="title-row">
+            <div>
+              <div class="car-title">2019 Subaru Outback Limited</div>
+              <div class="car-meta">52,300 mi &middot; AWD &middot; Clean title &middot; 1 owner</div>
+              <div style="margin-top:10px;"><span class="deal-badge">Good Deal</span></div>
+            </div>
+            <div class="price">$19,450</div>
+          </div>
+
+          <div class="spec-strip">
+            <div class="spec"><b>52,300</b>Miles</div>
+            <div class="spec"><b>AWD</b>Drivetrain</div>
+            <div class="spec"><b>2.5L 4cyl</b>Engine</div>
+            <div class="spec"><b>Automatic</b>Transmission</div>
+            <div class="spec"><b>Clean</b>Title</div>
+          </div>
+
+          <div class="section-title">Description</div>
+          <div class="desc">Well maintained Outback Limited trim with leather seating, adaptive cruise, and a recent multi point inspection on file. Northshore Auto Group has had this vehicle for 18 days. Ask about our Price Lock program for a written out the door price before you visit.</div>
+
+          <div class="section-title">Similar vehicles nearby</div>
+          <div class="similar-row">
+            <div class="similar-card"><div class="similar-photo"></div><div class="similar-info"><div class="similar-name">2018 Outback Premium</div><div class="similar-price">$17,990</div></div></div>
+            <div class="similar-card"><div class="similar-photo"></div><div class="similar-info"><div class="similar-name">2020 Outback Limited</div><div class="similar-price">$21,340</div></div></div>
+            <div class="similar-card"><div class="similar-photo"></div><div class="similar-info"><div class="similar-name">2019 Outback Touring</div><div class="similar-price">$20,115</div></div></div>
+          </div>
+        </div>
+
+        <div class="side">
+          <div class="dealer-card">
+            <div class="dealer-name">Northshore Auto Group</div>
+            <div class="dealer-loc">Salem, MA &middot; 6.3 mi away</div>
+            <div class="dealer-rating">&#9733;&#9733;&#9733;&#9733;&#9734; 4.2 (318 reviews)</div>
+
+            <button class="contact-btn">Message Dealer</button>
+            <button class="contact-btn">Call Dealer</button>
+
+            <div class="divider"></div>
+
+            <div class="lock-panel-title">&#128274; Price Lock</div>
+            <div class="lock-panel-copy">Ask the dealer to confirm your full out the door price in writing before you visit. If they confirm, it's protected for 48 hours.</div>
+
+            <div class="lock-status-line" id="lockStatusLine">
+              <span class="lock-dot"></span>
+              <span id="lockStatusText">No price confirmation requested yet</span>
+            </div>
+
+            <button class="lock-btn" id="lockBtn" onclick="requestLock()">Request Price Lock</button>
+
+            <div class="itemized" id="itemized">
+              <div class="item-row"><span>Vehicle price</span><span>$19,450</span></div>
+              <div class="item-row"><span>Doc fee</span><span>$249</span></div>
+              <div class="item-row"><span>Taxes and title, est.</span><span>$1,120</span></div>
+              <div class="item-row total"><span>Out the door total</span><span>$20,819</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY PRICE LOCKS PAGE -->
+    <div class="locks-page" id="page-locks">
+      <div class="locks-header">My Price Locks</div>
+      <div class="locks-sub" id="locksSub">Nothing locked in yet</div>
+
+      <div id="lockListCard" style="display:none;">
+        <div class="lock-list-card">
+          <div class="lock-list-photo"></div>
+          <div class="lock-list-info">
+            <div class="lock-list-name">2019 Subaru Outback Limited</div>
+            <div class="lock-list-dealer">Northshore Auto Group, Salem MA</div>
+            <div class="lock-list-detail">Confirmed today, locked for 48 hours</div>
+            <div class="lock-list-tag">Confirmed</div>
+          </div>
+          <div class="lock-list-price">
+            <div class="lock-list-total">$20,819</div>
+            <div style="font-size:11px;color:var(--muted);">out the door</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" id="lockEmpty">Request a Price Lock on any listing and the confirmed, itemized price will be saved here.</div>
+    </div>
+  </div>
+</div>
+
+<div class="demo-controls">
+  <button class="demo-btn" onclick="simulateConfirm()">Simulate dealer confirming</button>
+  <button class="demo-btn" onclick="showPage('locks')">Go to My Price Locks</button>
+  <button class="demo-btn" onclick="reset()">Reset prototype</button>
+</div>
+<div class="demo-label">Demo controls only. In the real product, dealer confirmation would arrive as an email and account notification, and the request would route through CarGurus' existing dealer messaging system.</div>
+
+<script>
+  function showPage(name) {
+    document.getElementById('page-vdp').style.display = name === 'vdp' ? 'block' : 'none';
+    document.getElementById('page-locks').classList.toggle('active', name === 'locks');
+    document.getElementById('urlbar').textContent = name === 'vdp'
+      ? 'cargurus.com/Cars/l/Used-2019-Subaru-Outback-Limited'
+      : 'cargurus.com/account/price-locks';
+  }
+
+  function requestLock() {
+    document.getElementById('lockStatusLine').className = 'lock-status-line pending';
+    document.getElementById('lockStatusText').textContent = 'Waiting on dealer to confirm';
+    document.getElementById('lockBtn').textContent = 'Price Lock Requested';
+  }
+
+  function simulateConfirm() {
+    document.getElementById('lockStatusLine').className = 'lock-status-line confirmed';
+    document.getElementById('lockStatusText').textContent = 'Price confirmed, locked for 48 hours';
+    document.getElementById('lockBtn').textContent = 'Price Lock Confirmed';
+    document.getElementById('lockBtn').classList.add('done');
+    document.getElementById('itemized').classList.add('show');
+    document.getElementById('lockRibbon').classList.add('show');
+    document.getElementById('lockListCard').style.display = 'block';
+    document.getElementById('lockEmpty').style.display = 'none';
+    document.getElementById('locksSub').textContent = '1 confirmed';
+  }
+
+  function reset() {
+    document.getElementById('lockStatusLine').className = 'lock-status-line';
+    document.getElementById('lockStatusText').textContent = 'No price confirmation requested yet';
+    document.getElementById('lockBtn').textContent = 'Request Price Lock';
+    document.getElementById('lockBtn').classList.remove('done');
+    document.getElementById('itemized').classList.remove('show');
+    document.getElementById('lockRibbon').classList.remove('show');
+    document.getElementById('lockListCard').style.display = 'none';
+    document.getElementById('lockEmpty').style.display = 'block';
+    document.getElementById('locksSub').textContent = 'Nothing locked in yet';
+    showPage('vdp');
+  }
+</script>
+
+</body>
+</html>
